@@ -18,10 +18,15 @@
                     </div>
                     <span id="healthText">100/100</span>
                 </div>
-                <div style="display: flex; gap: 10px;">
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                     <button class="settings-btn" onclick="game.audio.toggle(); this.textContent = game.audio.enabled ? '🔊' : '🔇'" title="Toggle Sound">
                         🔊
                     </button>
+                    <div class="volume-control" title="Music Volume">
+                        🎵 <input type="range" id="volumeSlider" min="0" max="100" value="30"
+                               oninput="game.updateVolume(this.value)" class="volume-slider">
+                        <span id="volumeValue">30%</span>
+                    </div>
                     <button class="settings-btn" onclick="game.toggleLanguage(); this.textContent = game.language === 'en' ? '🇬🇧' : '🇷🇺'" title="Toggle Language">
                         🇬🇧
                     </button>

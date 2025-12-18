@@ -209,11 +209,23 @@ class AudioManager {
             this.stopMusic();
         } else {
             // If game has started, resume music
-            if (window.game && !window.game.gameOver && window.game.currentRoom !== 'entrance') {
+            if (window.game && !window.game.gameOver) {
                 this.playMusic('ambient');
             }
         }
         return this.enabled;
+    }
+
+    setMusicVolume(volume) {
+        this.musicVolume = volume;
+        // Update current playing music volume
+        if (this.audioElement) {
+            this.audioElement.volume = volume;
+        }
+    }
+
+    setSFXVolume(volume) {
+        this.sfxVolume = volume;
     }
 }
 
@@ -391,6 +403,12 @@ class Game {
         this.stats = this.loadStats();
         this.language = localStorage.getItem('gameLanguage') || 'en';
 
+        // Load saved volume
+        const savedVolume = localStorage.getItem('musicVolume') || '30';
+        this.audio.setMusicVolume(parseInt(savedVolume) / 100);
+        document.getElementById('volumeSlider').value = savedVolume;
+        document.getElementById('volumeValue').textContent = savedVolume + '%';
+
         // Setup inventory button
         document.getElementById('inventoryBtn').addEventListener('click', () => {
             this.toggleInventory();
@@ -435,6 +453,15 @@ class Game {
         document.querySelector('h1').textContent = `🏚️ ${this.t('title')}`;
         const healthLabel = document.querySelector('.label');
         if (healthLabel) healthLabel.textContent = this.t('health');
+    }
+
+    updateVolume(value) {
+        const volume = value / 100;
+        this.audio.setMusicVolume(volume);
+        document.getElementById('volumeValue').textContent = value + '%';
+
+        // Save volume preference
+        localStorage.setItem('musicVolume', value);
     }
 
     saveGame() {
