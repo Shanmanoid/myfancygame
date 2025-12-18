@@ -3,6 +3,8 @@ class Player {
         this.health = 100;
         this.maxHealth = 100;
         this.inventory = [];
+        this.visitedRooms = new Set();
+        this.achievements = new Set();
     }
 
     takeDamage(amount) {
@@ -70,11 +72,29 @@ class Player {
         if (this.inventory.length === 0) {
             inventoryItems.innerHTML = '<p class="empty-inventory">Your inventory is empty</p>';
         } else {
-            inventoryItems.innerHTML = this.inventory.map(item => `
-                <div class="item">
-                    <div class="item-name">${this.getItemIcon(item)} ${item}</div>
-                </div>
-            `).join('');
+            inventoryItems.innerHTML = this.inventory.map((item, index) => {
+                const isUsable = item === 'Health Potion';
+                return `
+                    <div class="item ${isUsable ? 'usable' : ''}">
+                        <div class="item-name">${this.getItemIcon(item)} ${item}</div>
+                        ${isUsable ? `<button class="use-btn" onclick="game.useItem('${item}', ${index})">Use</button>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+    }
+
+    useItem(itemName, index) {
+        if (itemName === 'Health Potion') {
+            if (this.health >= this.maxHealth) {
+                alert('Your health is already full!');
+                return;
+            }
+            this.heal(50);
+            this.inventory.splice(index, 1);
+            this.updateInventoryDisplay();
+            this.unlockAchievement('Healer');
+            alert('You used the Health Potion and restored 50 HP!');
         }
     }
 
@@ -82,9 +102,44 @@ class Player {
         const icons = {
             'Ancient Book': '📖',
             'Holy Water': '💧',
-            'Silver Key': '🔑'
+            'Silver Key': '🔑',
+            'Health Potion': '🧪',
+            'Rusty Sword': '⚔️',
+            'Basement Key': '🗝️'
         };
         return icons[item] || '📦';
+    }
+
+    visitRoom(roomName) {
+        this.visitedRooms.add(roomName);
+    }
+
+    unlockAchievement(achievement) {
+        if (!this.achievements.has(achievement)) {
+            this.achievements.add(achievement);
+            this.showAchievementNotification(achievement);
+        }
+    }
+
+    showAchievementNotification(achievement) {
+        const notification = document.createElement('div');
+        notification.className = 'achievement-notification';
+        notification.innerHTML = `
+            <div class="achievement-content">
+                <span class="achievement-icon">🏆</span>
+                <div>
+                    <div class="achievement-title">Achievement Unlocked!</div>
+                    <div class="achievement-name">${achievement}</div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(notification);
+
+        setTimeout(() => notification.classList.add('show'), 100);
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
     }
 }
 
@@ -92,11 +147,65 @@ class Game {
     constructor() {
         this.player = new Player();
         this.gameOver = false;
+        this.currentRoom = 'entrance';
 
         // Setup inventory button
         document.getElementById('inventoryBtn').addEventListener('click', () => {
             this.toggleInventory();
         });
+
+        // Load saved game if exists
+        this.loadGame();
+    }
+
+    saveGame() {
+        const saveData = {
+            health: this.player.health,
+            inventory: this.player.inventory,
+            visitedRooms: Array.from(this.player.visitedRooms),
+            achievements: Array.from(this.player.achievements),
+            currentRoom: this.currentRoom,
+            gameOver: this.gameOver
+        };
+        localStorage.setItem('hauntedMansionSave', JSON.stringify(saveData));
+        this.showNotification('Game Saved! 💾');
+    }
+
+    loadGame() {
+        const savedData = localStorage.getItem('hauntedMansionSave');
+        if (savedData) {
+            try {
+                const data = JSON.parse(savedData);
+                this.player.health = data.health;
+                this.player.inventory = data.inventory || [];
+                this.player.visitedRooms = new Set(data.visitedRooms || []);
+                this.player.achievements = new Set(data.achievements || []);
+                this.currentRoom = data.currentRoom || 'entrance';
+                this.gameOver = data.gameOver || false;
+                this.player.updateHealthBar();
+                this.player.updateInventoryDisplay();
+            } catch (e) {
+                console.error('Failed to load save:', e);
+            }
+        }
+    }
+
+    deleteSave() {
+        localStorage.removeItem('hauntedMansionSave');
+        this.showNotification('Save Deleted! 🗑️');
+    }
+
+    showNotification(message) {
+        const notification = document.createElement('div');
+        notification.className = 'save-notification';
+        notification.textContent = message;
+        document.body.appendChild(notification);
+
+        setTimeout(() => notification.classList.add('show'), 100);
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 300);
+        }, 2000);
     }
 
     toggleInventory() {
@@ -130,18 +239,26 @@ class Game {
     }
 
     entranceHall() {
+        this.currentRoom = 'entrance';
+        this.player.visitRoom('Entrance Hall');
+        this.saveGame();
+
+        const choices = [
+            { text: '🚪 Go to the Library (left door)', action: 'game.library()' },
+            { text: '🚪 Go to the Kitchen (right door)', action: 'game.kitchen()' },
+            { text: '🚪 Go upstairs to the Bedroom', action: 'game.bedroom()' },
+            { text: '🚪 Go down to the Basement', action: 'game.basement()' },
+            { text: '🚪 Go upstairs to the Attic', action: 'game.attic()' }
+        ];
+
         this.showScene(
             'Entrance Hall',
             `
                 <p>You find yourself in a dusty entrance hall. Moonlight filters through broken windows.</p>
-                <p>You see three doors before you, each leading to darkness...</p>
+                <p>You see multiple doors and passages before you...</p>
                 <p class="objective">Where will you go?</p>
             `,
-            [
-                { text: '🚪 Go to the Library (left door)', action: 'game.library()' },
-                { text: '🚪 Go to the Kitchen (right door)', action: 'game.kitchen()' },
-                { text: '🚪 Go upstairs to the Bedroom', action: 'game.bedroom()' }
-            ]
+            choices
         );
     }
 
@@ -366,7 +483,138 @@ class Game {
         }
     }
 
+    basement() {
+        this.currentRoom = 'basement';
+        this.player.visitRoom('Basement');
+        this.saveGame();
+
+        if (!this.player.hasItem('Rusty Sword')) {
+            this.showScene(
+                '🕯️ Basement',
+                `
+                    <p>You descend creaky wooden stairs into a damp, dark basement.</p>
+                    <p>The smell of mold fills your nostrils. Water drips from the ceiling.</p>
+                    <p>In the corner, you spot an old weapon rack with a rusty sword!</p>
+                    <p>There's also a dusty crate in the corner...</p>
+                `,
+                [
+                    { text: '⚔️ Take the Rusty Sword', action: 'game.takeRustySword()', class: 'success' },
+                    { text: '📦 Search the crate', action: 'game.searchCrate()' },
+                    { text: '← Return to Entrance Hall', action: 'game.entranceHall()' }
+                ]
+            );
+        } else if (!this.player.hasItem('Health Potion')) {
+            this.showScene(
+                '🕯️ Basement',
+                `
+                    <p>The dark basement feels less threatening now that you have a weapon.</p>
+                    <p>The crate in the corner still remains unopened...</p>
+                `,
+                [
+                    { text: '📦 Search the crate', action: 'game.searchCrate()' },
+                    { text: '← Return to Entrance Hall', action: 'game.entranceHall()' }
+                ]
+            );
+        } else {
+            this.showScene(
+                '🕯️ Basement',
+                `
+                    <p>The basement is empty now. Nothing else of value remains.</p>
+                `,
+                [
+                    { text: '← Return to Entrance Hall', action: 'game.entranceHall()' }
+                ]
+            );
+        }
+    }
+
+    takeRustySword() {
+        this.player.addItem('Rusty Sword');
+        this.player.unlockAchievement('Armed and Ready');
+        this.showScene(
+            '🕯️ Basement',
+            `
+                <p>You take the rusty sword. It's old but still sharp!</p>
+                <p style="color: #44ff44;">✓ Rusty Sword added to inventory</p>
+                <p>You feel more confident now that you have a weapon.</p>
+            `,
+            [
+                { text: 'Continue exploring the Basement', action: 'game.basement()' }
+            ]
+        );
+    }
+
+    searchCrate() {
+        this.player.addItem('Health Potion');
+        this.showScene(
+            '🕯️ Basement',
+            `
+                <p>You pry open the old crate. Inside, you find a glowing red potion!</p>
+                <p style="color: #44ff44;">✓ Health Potion added to inventory</p>
+                <p>This could restore your health when you need it most.</p>
+            `,
+            [
+                { text: 'Continue exploring the Basement', action: 'game.basement()' }
+            ]
+        );
+    }
+
+    attic() {
+        this.currentRoom = 'attic';
+        this.player.visitRoom('Attic');
+        this.saveGame();
+
+        if (!this.player.hasItem('Basement Key')) {
+            this.showScene(
+                '🏚️ Attic',
+                `
+                    <p>You climb up to the dusty attic. Cobwebs hang everywhere.</p>
+                    <p>Old furniture and forgotten memories fill this space.</p>
+                    <p>You find an old journal on a desk. Reading it reveals:</p>
+                    <p style="color: #ffcc00; font-style: italic;">"The darkness came from below... the basement holds secrets..."</p>
+                    <p>You also notice a small key hanging on the wall.</p>
+                `,
+                [
+                    { text: '🗝️ Take the Basement Key', action: 'game.takeBasementKey()', class: 'success' },
+                    { text: '← Return to Entrance Hall', action: 'game.entranceHall()' }
+                ]
+            );
+        } else {
+            this.showScene(
+                '🏚️ Attic',
+                `
+                    <p>The attic is quiet. The journal sits on the desk, but you've already read it.</p>
+                    <p>Nothing else here seems useful.</p>
+                `,
+                [
+                    { text: '← Return to Entrance Hall', action: 'game.entranceHall()' }
+                ]
+            );
+        }
+    }
+
+    takeBasementKey() {
+        this.player.addItem('Basement Key');
+        this.player.unlockAchievement('Explorer');
+        this.showScene(
+            '🏚️ Attic',
+            `
+                <p>You take the basement key. It's old and covered in rust.</p>
+                <p style="color: #44ff44;">✓ Basement Key added to inventory</p>
+                <p>This might unlock something important...</p>
+            `,
+            [
+                { text: 'Continue exploring the Attic', action: 'game.attic()' }
+            ]
+        );
+    }
+
     finalChoice() {
+        // Check if player visited all rooms
+        if (this.player.visitedRooms.size >= 5) {
+            this.player.unlockAchievement('Master Explorer');
+        }
+
         this.showScene(
             '⚡ The Ritual Chamber',
             `
@@ -387,6 +635,12 @@ class Game {
 
     goodEnding() {
         this.gameOver = true;
+        this.player.unlockAchievement('Hero of the Town');
+        if (this.player.health === 100) {
+            this.player.unlockAchievement('Flawless Victory');
+        }
+        this.deleteSave();
+
         this.showScene(
             '✨ GOOD ENDING: Hero',
             `
@@ -400,6 +654,7 @@ class Game {
                     <p>The storm has cleared. The sun is rising.</p>
                     <p class="objective">The town is safe. The disappearances will stop. You are hailed as a hero!</p>
                     <h3 style="color: #44ff44; margin-top: 20px;">🏆 THE END - You saved the town!</h3>
+                    <p style="margin-top: 20px;">Achievements: ${this.player.achievements.size}/7 unlocked</p>
                 </div>
             `,
             [

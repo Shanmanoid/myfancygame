@@ -377,6 +377,97 @@ footer {
     background: #a0522d;
 }
 
+/* Achievement Notifications */
+.achievement-notification {
+    position: fixed;
+    top: 20px;
+    right: -400px;
+    background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+    color: #000;
+    padding: 15px 20px;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(255, 215, 0, 0.5);
+    z-index: 2000;
+    transition: right 0.3s ease;
+    min-width: 300px;
+}
+
+.achievement-notification.show {
+    right: 20px;
+}
+
+.achievement-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.achievement-icon {
+    font-size: 2em;
+}
+
+.achievement-title {
+    font-weight: bold;
+    font-size: 0.9em;
+    margin-bottom: 3px;
+}
+
+.achievement-name {
+    font-size: 1.1em;
+    font-weight: 600;
+}
+
+/* Save Notifications */
+.save-notification {
+    position: fixed;
+    bottom: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: #fff;
+    padding: 12px 25px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    z-index: 2000;
+    transition: bottom 0.3s ease;
+    font-weight: 500;
+}
+
+.save-notification.show {
+    bottom: 30px;
+}
+
+/* Usable Items */
+.item.usable {
+    background: rgba(0, 120, 0, 0.2);
+    border-left-color: #44ff44;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.item.usable:hover {
+    background: rgba(0, 150, 0, 0.3);
+}
+
+.use-btn {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: #fff;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    font-size: 0.9em;
+}
+
+.use-btn:hover {
+    background: linear-gradient(135deg, #218838 0%, #1a9b7a 100%);
+    transform: scale(1.05);
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
     h1 {
@@ -394,5 +485,14 @@ footer {
 
     main {
         padding: 20px;
+    }
+
+    .achievement-notification {
+        min-width: 250px;
+        right: -350px;
+    }
+
+    .achievement-notification.show {
+        right: 10px;
     }
 }
