@@ -50,6 +50,16 @@ const translations = {
         badEndings: "Bad Endings",
         bestHealth: "Best Health Score",
         totalAchievements: "Total Achievements Unlocked",
+
+        // Difficulty
+        selectDifficulty: "Select Difficulty",
+        easy: "Easy",
+        easyDesc: "More health, less damage - Perfect for beginners",
+        normal: "Normal",
+        normalDesc: "Balanced experience - Standard gameplay",
+        hard: "Hard",
+        hardDesc: "Less health, more damage - For experienced players",
+        difficulty: "Difficulty",
     },
     ru: {
         title: "Тайна Проклятого Особняка",
@@ -90,6 +100,16 @@ const translations = {
         badEndings: "Плохие концовки",
         bestHealth: "Лучший результат здоровья",
         totalAchievements: "Всего достижений разблокировано",
+
+        // Difficulty
+        selectDifficulty: "Выберите сложность",
+        easy: "Легко",
+        easyDesc: "Больше здоровья, меньше урона - Для новичков",
+        normal: "Нормально",
+        normalDesc: "Сбалансированный опыт - Стандартная игра",
+        hard: "Сложно",
+        hardDesc: "Меньше здоровья, больше урона - Для опытных игроков",
+        difficulty: "Сложность",
     }
 };
 
@@ -285,16 +305,27 @@ class AudioManager {
 }
 
 class Player {
-    constructor() {
-        this.health = 100;
-        this.maxHealth = 100;
+    constructor(difficulty = 'normal') {
+        // Difficulty modifiers
+        const difficultySettings = {
+            easy: { health: 150, damageMultiplier: 0.7 },
+            normal: { health: 100, damageMultiplier: 1.0 },
+            hard: { health: 75, damageMultiplier: 1.5 }
+        };
+
+        const settings = difficultySettings[difficulty];
+        this.difficulty = difficulty;
+        this.health = settings.health;
+        this.maxHealth = settings.health;
+        this.damageMultiplier = settings.damageMultiplier;
         this.inventory = [];
         this.visitedRooms = new Set();
         this.achievements = new Set();
     }
 
     takeDamage(amount) {
-        this.health -= amount;
+        const actualDamage = Math.round(amount * this.damageMultiplier);
+        this.health -= actualDamage;
         if (this.health < 0) this.health = 0;
         this.updateHealthBar();
 
@@ -453,7 +484,8 @@ class Player {
 
 class Game {
     constructor() {
-        this.player = new Player();
+        this.difficulty = localStorage.getItem('gameDifficulty') || 'normal';
+        this.player = new Player(this.difficulty);
         this.gameOver = false;
         this.currentRoom = 'entrance';
         this.audio = new AudioManager();
@@ -558,7 +590,8 @@ class Game {
             visitedRooms: Array.from(this.player.visitedRooms),
             achievements: Array.from(this.player.achievements),
             currentRoom: this.currentRoom,
-            gameOver: this.gameOver
+            gameOver: this.gameOver,
+            difficulty: this.difficulty
         };
         localStorage.setItem('hauntedMansionSave', JSON.stringify(saveData));
         this.showNotification(this.t('gameSaved'));
@@ -569,6 +602,13 @@ class Game {
         if (savedData) {
             try {
                 const data = JSON.parse(savedData);
+
+                // Load difficulty if saved, otherwise use current
+                if (data.difficulty) {
+                    this.difficulty = data.difficulty;
+                    this.player = new Player(data.difficulty);
+                }
+
                 this.player.health = data.health;
                 this.player.inventory = data.inventory || [];
                 this.player.visitedRooms = new Set(data.visitedRooms || []);
@@ -653,7 +693,38 @@ class Game {
     }
 
     start() {
-        this.player = new Player();
+        this.showDifficultySelection();
+    }
+
+    showDifficultySelection() {
+        this.showScene(
+            this.t('selectDifficulty'),
+            `
+                <p>Choose your preferred difficulty level. This will affect your starting health and damage taken.</p>
+            `,
+            [
+                {
+                    text: `🟢 ${this.t('easy')} - ${this.t('easyDesc')}`,
+                    action: 'game.startWithDifficulty("easy")',
+                    class: 'success'
+                },
+                {
+                    text: `🟡 ${this.t('normal')} - ${this.t('normalDesc')}`,
+                    action: 'game.startWithDifficulty("normal")'
+                },
+                {
+                    text: `🔴 ${this.t('hard')} - ${this.t('hardDesc')}`,
+                    action: 'game.startWithDifficulty("hard")',
+                    class: 'danger'
+                }
+            ]
+        );
+    }
+
+    startWithDifficulty(difficulty) {
+        this.difficulty = difficulty;
+        localStorage.setItem('gameDifficulty', difficulty);
+        this.player = new Player(difficulty);
         this.gameOver = false;
         this.player.updateHealthBar();
         this.player.updateInventoryDisplay();
