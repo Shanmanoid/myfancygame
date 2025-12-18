@@ -473,6 +473,74 @@ footer {
     transform: scale(1.05);
 }
 
+/* Achievements Panel */
+.achievements-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.achievement-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.achievement-item.unlocked {
+    background: rgba(50, 205, 50, 0.15);
+    border-left: 4px solid #32cd32;
+}
+
+.achievement-item.unlocked:hover {
+    background: rgba(50, 205, 50, 0.25);
+    transform: translateX(5px);
+}
+
+.achievement-item.locked {
+    background: rgba(100, 100, 100, 0.1);
+    border-left: 4px solid #555;
+    opacity: 0.6;
+}
+
+.achievement-icon-large {
+    font-size: 2.5em;
+    min-width: 60px;
+    text-align: center;
+}
+
+.achievement-details {
+    flex: 1;
+}
+
+.achievement-details .achievement-name {
+    font-weight: bold;
+    color: #ffa500;
+    font-size: 1.1em;
+    margin-bottom: 5px;
+}
+
+.achievement-details .achievement-desc {
+    color: #ccc;
+    font-size: 0.9em;
+}
+
+.achievement-item.locked .achievement-name,
+.achievement-item.locked .achievement-desc {
+    color: #888;
+}
+
+.achievement-checkmark {
+    font-size: 2em;
+    color: #32cd32;
+    font-weight: bold;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
     h1 {

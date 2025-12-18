@@ -25,6 +25,9 @@
                     <button class="settings-btn" onclick="game.toggleLanguage(); this.textContent = game.language === 'en' ? '🇬🇧' : '🇷🇺'" title="Toggle Language">
                         🇬🇧
                     </button>
+                    <button class="inventory-btn" onclick="game.toggleAchievements()">
+                        🏆 Achievements (<span id="achievementsCount">0/7</span>)
+                    </button>
                     <button class="inventory-btn" id="inventoryBtn">
                         🎒 Inventory (<span id="itemCount">0</span>)
                     </button>
@@ -53,6 +56,16 @@
                 </div>
                 <div class="inventory-items" id="inventoryItems">
                     <p class="empty-inventory">Your inventory is empty</p>
+                </div>
+            </div>
+
+            <div class="inventory-panel" id="achievementsPanel">
+                <div class="inventory-header">
+                    <h3>🏆 Achievements</h3>
+                    <button class="close-btn" onclick="game.toggleAchievements()">✕</button>
+                </div>
+                <div class="achievements-list" id="achievementsList">
+                    <!-- Achievements will be populated by JavaScript -->
                 </div>
             </div>
         </main>

@@ -1,3 +1,14 @@
+// All achievements in the game
+const ALL_ACHIEVEMENTS = [
+    { id: 'Armed and Ready', icon: '⚔️', description: 'Find the Rusty Sword' },
+    { id: 'Explorer', icon: '🗺️', description: 'Find the Basement Key' },
+    { id: 'Master Explorer', icon: '🌟', description: 'Visit all 5+ rooms' },
+    { id: 'Healer', icon: '💊', description: 'Use a Health Potion' },
+    { id: 'Hero of the Town', icon: '🏆', description: 'Get the good ending' },
+    { id: 'Flawless Victory', icon: '💯', description: 'Win with full health' },
+    { id: 'Survivor', icon: '🛡️', description: 'Complete the game' }
+];
+
 // Language translations
 const translations = {
     en: {
@@ -64,26 +75,64 @@ class AudioManager {
 
     playAmbientMusic() {
         if (!this.sounds.bgMusic.context) return;
+        if (this.currentMusic && this.currentMusic.playing) return;
 
         const ctx = this.sounds.bgMusic.context;
-        const oscillator = ctx.createOscillator();
-        const gainNode = ctx.createGain();
 
-        oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(220, ctx.currentTime);
-        gainNode.gain.setValueAtTime(this.musicVolume * 0.1, ctx.currentTime);
+        // Create multiple oscillators for richer ambient sound
+        const osc1 = ctx.createOscillator();
+        const osc2 = ctx.createOscillator();
+        const osc3 = ctx.createOscillator();
 
-        oscillator.connect(gainNode);
-        gainNode.connect(ctx.destination);
+        const gain1 = ctx.createGain();
+        const gain2 = ctx.createGain();
+        const gain3 = ctx.createGain();
+        const masterGain = ctx.createGain();
 
-        oscillator.start();
+        // Low drone
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(110, ctx.currentTime);
+        gain1.gain.setValueAtTime(this.musicVolume * 0.03, ctx.currentTime);
 
-        this.currentMusic = { oscillator, gainNode, playing: true };
+        // Mid harmonic
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(165, ctx.currentTime);
+        gain2.gain.setValueAtTime(this.musicVolume * 0.02, ctx.currentTime);
+
+        // High whisper
+        osc3.type = 'sine';
+        osc3.frequency.setValueAtTime(220, ctx.currentTime);
+        gain3.gain.setValueAtTime(this.musicVolume * 0.015, ctx.currentTime);
+
+        // Fade in
+        masterGain.gain.setValueAtTime(0, ctx.currentTime);
+        masterGain.gain.linearRampToValueAtTime(1, ctx.currentTime + 2);
+
+        osc1.connect(gain1);
+        osc2.connect(gain2);
+        osc3.connect(gain3);
+        gain1.connect(masterGain);
+        gain2.connect(masterGain);
+        gain3.connect(masterGain);
+        masterGain.connect(ctx.destination);
+
+        osc1.start();
+        osc2.start();
+        osc3.start();
+
+        this.currentMusic = {
+            oscillators: [osc1, osc2, osc3],
+            gains: [gain1, gain2, gain3],
+            masterGain,
+            playing: true
+        };
     }
 
     stopMusic() {
-        if (this.currentMusic && this.currentMusic.oscillator) {
-            this.currentMusic.oscillator.stop();
+        if (this.currentMusic && this.currentMusic.oscillators) {
+            this.currentMusic.oscillators.forEach(osc => {
+                try { osc.stop(); } catch(e) {}
+            });
             this.currentMusic.playing = false;
         }
     }
@@ -98,42 +147,50 @@ class AudioManager {
         oscillator.connect(gainNode);
         gainNode.connect(ctx.destination);
 
-        gainNode.gain.setValueAtTime(this.sfxVolume * 0.3, ctx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+        // Much softer volume and smoother fade
+        gainNode.gain.setValueAtTime(0, ctx.currentTime);
+        gainNode.gain.linearRampToValueAtTime(this.sfxVolume * 0.05, ctx.currentTime + 0.02);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
 
         switch(soundName) {
             case 'click':
-                oscillator.frequency.setValueAtTime(800, ctx.currentTime);
-                oscillator.type = 'square';
-                break;
-            case 'item':
-                oscillator.frequency.setValueAtTime(1000, ctx.currentTime);
-                oscillator.type = 'sine';
-                break;
-            case 'damage':
-                oscillator.frequency.setValueAtTime(100, ctx.currentTime);
-                oscillator.type = 'sawtooth';
-                break;
-            case 'heal':
                 oscillator.frequency.setValueAtTime(600, ctx.currentTime);
                 oscillator.type = 'sine';
                 break;
+            case 'item':
+                oscillator.frequency.setValueAtTime(800, ctx.currentTime);
+                oscillator.frequency.linearRampToValueAtTime(1200, ctx.currentTime + 0.1);
+                oscillator.type = 'sine';
+                break;
+            case 'damage':
+                oscillator.frequency.setValueAtTime(150, ctx.currentTime);
+                oscillator.frequency.linearRampToValueAtTime(100, ctx.currentTime + 0.2);
+                oscillator.type = 'sine';
+                break;
+            case 'heal':
+                oscillator.frequency.setValueAtTime(400, ctx.currentTime);
+                oscillator.frequency.linearRampToValueAtTime(800, ctx.currentTime + 0.15);
+                oscillator.type = 'sine';
+                break;
             case 'achievement':
-                oscillator.frequency.setValueAtTime(1200, ctx.currentTime);
-                oscillator.type = 'triangle';
+                oscillator.frequency.setValueAtTime(800, ctx.currentTime);
+                oscillator.frequency.linearRampToValueAtTime(1200, ctx.currentTime + 0.1);
+                oscillator.type = 'sine';
                 break;
             case 'ghost':
-                oscillator.frequency.setValueAtTime(150, ctx.currentTime);
-                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(200, ctx.currentTime);
+                oscillator.frequency.linearRampToValueAtTime(150, ctx.currentTime + 0.3);
+                oscillator.type = 'sine';
                 break;
             case 'door':
-                oscillator.frequency.setValueAtTime(200, ctx.currentTime);
-                oscillator.type = 'square';
+                oscillator.frequency.setValueAtTime(300, ctx.currentTime);
+                oscillator.frequency.linearRampToValueAtTime(250, ctx.currentTime + 0.15);
+                oscillator.type = 'sine';
                 break;
         }
 
         oscillator.start(ctx.currentTime);
-        oscillator.stop(ctx.currentTime + 0.3);
+        oscillator.stop(ctx.currentTime + 0.4);
     }
 
     toggle() {
@@ -420,6 +477,35 @@ class Game {
         panel.classList.toggle('active');
     }
 
+    toggleAchievements() {
+        const panel = document.getElementById('achievementsPanel');
+        panel.classList.toggle('active');
+        this.updateAchievementsDisplay();
+    }
+
+    updateAchievementsDisplay() {
+        const achievementsContainer = document.getElementById('achievementsList');
+
+        achievementsContainer.innerHTML = ALL_ACHIEVEMENTS.map(achievement => {
+            const isUnlocked = this.player.achievements.has(achievement.id);
+            return `
+                <div class="achievement-item ${isUnlocked ? 'unlocked' : 'locked'}">
+                    <div class="achievement-icon-large">${isUnlocked ? achievement.icon : '🔒'}</div>
+                    <div class="achievement-details">
+                        <div class="achievement-name">${isUnlocked ? achievement.id : '???'}</div>
+                        <div class="achievement-desc">${isUnlocked ? achievement.description : 'Hidden achievement'}</div>
+                    </div>
+                    ${isUnlocked ? '<div class="achievement-checkmark">✓</div>' : ''}
+                </div>
+            `;
+        }).join('');
+
+        // Update counter
+        const unlockedCount = this.player.achievements.size;
+        const totalCount = ALL_ACHIEVEMENTS.length;
+        document.getElementById('achievementsCount').textContent = `${unlockedCount}/${totalCount}`;
+    }
+
     showScene(title, text, choices) {
         const storyText = document.getElementById('storyText');
         const choicesDiv = document.getElementById('choices');
@@ -442,6 +528,10 @@ class Game {
         this.gameOver = false;
         this.player.updateHealthBar();
         this.player.updateInventoryDisplay();
+
+        // Start ambient music
+        this.audio.playMusic('ambient');
+
         this.entranceHall();
     }
 
