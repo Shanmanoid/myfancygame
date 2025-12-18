@@ -45,68 +45,67 @@ class AudioManager {
         this.musicVolume = 0.3;
         this.sfxVolume = 0.5;
         this.currentMusic = null;
-
-        // Using royalty-free audio URLs (Web Audio API with generated sounds)
-        this.sounds = {
-            // Background music (ambient loops)
-            bgMusic: this.createAmbientLoop(),
-            // Sound effects will be generated
-        };
-    }
-
-    createAmbientLoop() {
-        // Create a simple ambient background using Web Audio API
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        return { context: audioContext, playing: false };
+        this.audioElement = null;
     }
 
     playMusic(musicName) {
         if (!this.enabled) return;
 
-        if (this.currentMusic && this.currentMusic.playing) {
-            this.stopMusic();
+        // Stop current music if playing
+        this.stopMusic();
+
+        // Create new audio element
+        this.audioElement = new Audio();
+
+        // Set the music file path
+        if (musicName === 'ambient') {
+            this.audioElement.src = 'audio/ambient.mp3';
         }
 
-        // Simple ambient music using oscillators
-        if (musicName === 'ambient') {
-            this.playAmbientMusic();
-        }
+        // Configure audio
+        this.audioElement.volume = this.musicVolume;
+        this.audioElement.loop = true;
+
+        // Play the music
+        this.audioElement.play().catch(err => {
+            console.log('Music playback failed:', err);
+            // Fallback to generated sound if file doesn't exist
+            this.playGeneratedMusic();
+        });
+
+        this.currentMusic = { playing: true };
     }
 
-    playAmbientMusic() {
-        if (!this.sounds.bgMusic.context) return;
-        if (this.currentMusic && this.currentMusic.playing) return;
+    playGeneratedMusic() {
+        // Fallback: Generate simple ambient music if audio file is missing
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const osc1 = audioContext.createOscillator();
+        const osc2 = audioContext.createOscillator();
+        const osc3 = audioContext.createOscillator();
 
-        const ctx = this.sounds.bgMusic.context;
-
-        // Create multiple oscillators for richer ambient sound
-        const osc1 = ctx.createOscillator();
-        const osc2 = ctx.createOscillator();
-        const osc3 = ctx.createOscillator();
-
-        const gain1 = ctx.createGain();
-        const gain2 = ctx.createGain();
-        const gain3 = ctx.createGain();
-        const masterGain = ctx.createGain();
+        const gain1 = audioContext.createGain();
+        const gain2 = audioContext.createGain();
+        const gain3 = audioContext.createGain();
+        const masterGain = audioContext.createGain();
 
         // Low drone
         osc1.type = 'sine';
-        osc1.frequency.setValueAtTime(110, ctx.currentTime);
-        gain1.gain.setValueAtTime(this.musicVolume * 0.03, ctx.currentTime);
+        osc1.frequency.setValueAtTime(110, audioContext.currentTime);
+        gain1.gain.setValueAtTime(this.musicVolume * 0.03, audioContext.currentTime);
 
         // Mid harmonic
         osc2.type = 'sine';
-        osc2.frequency.setValueAtTime(165, ctx.currentTime);
-        gain2.gain.setValueAtTime(this.musicVolume * 0.02, ctx.currentTime);
+        osc2.frequency.setValueAtTime(165, audioContext.currentTime);
+        gain2.gain.setValueAtTime(this.musicVolume * 0.02, audioContext.currentTime);
 
         // High whisper
         osc3.type = 'sine';
-        osc3.frequency.setValueAtTime(220, ctx.currentTime);
-        gain3.gain.setValueAtTime(this.musicVolume * 0.015, ctx.currentTime);
+        osc3.frequency.setValueAtTime(220, audioContext.currentTime);
+        gain3.gain.setValueAtTime(this.musicVolume * 0.015, audioContext.currentTime);
 
         // Fade in
-        masterGain.gain.setValueAtTime(0, ctx.currentTime);
-        masterGain.gain.linearRampToValueAtTime(1, ctx.currentTime + 2);
+        masterGain.gain.setValueAtTime(0, audioContext.currentTime);
+        masterGain.gain.linearRampToValueAtTime(1, audioContext.currentTime + 2);
 
         osc1.connect(gain1);
         osc2.connect(gain2);
@@ -114,7 +113,7 @@ class AudioManager {
         gain1.connect(masterGain);
         gain2.connect(masterGain);
         gain3.connect(masterGain);
-        masterGain.connect(ctx.destination);
+        masterGain.connect(audioContext.destination);
 
         osc1.start();
         osc2.start();
@@ -122,18 +121,29 @@ class AudioManager {
 
         this.currentMusic = {
             oscillators: [osc1, osc2, osc3],
-            gains: [gain1, gain2, gain3],
-            masterGain,
+            context: audioContext,
             playing: true
         };
     }
 
     stopMusic() {
+        // Stop HTML5 audio
+        if (this.audioElement) {
+            this.audioElement.pause();
+            this.audioElement.currentTime = 0;
+            this.audioElement = null;
+        }
+
+        // Stop generated audio
         if (this.currentMusic && this.currentMusic.oscillators) {
             this.currentMusic.oscillators.forEach(osc => {
                 try { osc.stop(); } catch(e) {}
             });
+        }
+
+        if (this.currentMusic) {
             this.currentMusic.playing = false;
+            this.currentMusic = null;
         }
     }
 
