@@ -18,9 +18,17 @@
                     </div>
                     <span id="healthText">100/100</span>
                 </div>
-                <button class="inventory-btn" id="inventoryBtn">
-                    🎒 Inventory (<span id="itemCount">0</span>)
-                </button>
+                <div style="display: flex; gap: 10px;">
+                    <button class="settings-btn" onclick="game.audio.toggle(); this.textContent = game.audio.enabled ? '🔊' : '🔇'" title="Toggle Sound">
+                        🔊
+                    </button>
+                    <button class="settings-btn" onclick="game.toggleLanguage(); this.textContent = game.language === 'en' ? '🇬🇧' : '🇷🇺'" title="Toggle Language">
+                        🇬🇧
+                    </button>
+                    <button class="inventory-btn" id="inventoryBtn">
+                        🎒 Inventory (<span id="itemCount">0</span>)
+                    </button>
+                </div>
             </div>
         </header>
 

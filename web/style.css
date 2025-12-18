@@ -94,7 +94,7 @@ h1 {
     min-width: 70px;
 }
 
-.inventory-btn {
+.inventory-btn, .settings-btn {
     background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
     color: #fff;
     border: 2px solid #718096;
@@ -106,7 +106,12 @@ h1 {
     transition: all 0.3s ease;
 }
 
-.inventory-btn:hover {
+.settings-btn {
+    padding: 10px 15px;
+    font-size: 1.2em;
+}
+
+.inventory-btn:hover, .settings-btn:hover {
     background: linear-gradient(135deg, #5a6578 0%, #3d4758 100%);
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);

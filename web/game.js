@@ -1,3 +1,150 @@
+// Language translations
+const translations = {
+    en: {
+        title: "The Haunted Mansion Mystery",
+        health: "Health:",
+        inventory: "Inventory",
+        itemCount: "items",
+        emptyInventory: "Your inventory is empty",
+        gameSaved: "Game Saved! 💾",
+        saveDeleted: "Save Deleted! 🗑️",
+        achievementUnlocked: "Achievement Unlocked!",
+        playAgain: "🔄 Play Again",
+        tryAgain: "🔄 Try Again",
+        // Add more translations as needed
+    },
+    ru: {
+        title: "Тайна Проклятого Особняка",
+        health: "Здоровье:",
+        inventory: "Инвентарь",
+        itemCount: "предметов",
+        emptyInventory: "Ваш инвентарь пуст",
+        gameSaved: "Игра сохранена! 💾",
+        saveDeleted: "Сохранение удалено! 🗑️",
+        achievementUnlocked: "Достижение получено!",
+        playAgain: "🔄 Играть снова",
+        tryAgain: "🔄 Попробовать снова",
+    }
+};
+
+// Audio Manager
+class AudioManager {
+    constructor() {
+        this.enabled = true;
+        this.musicVolume = 0.3;
+        this.sfxVolume = 0.5;
+        this.currentMusic = null;
+
+        // Using royalty-free audio URLs (Web Audio API with generated sounds)
+        this.sounds = {
+            // Background music (ambient loops)
+            bgMusic: this.createAmbientLoop(),
+            // Sound effects will be generated
+        };
+    }
+
+    createAmbientLoop() {
+        // Create a simple ambient background using Web Audio API
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        return { context: audioContext, playing: false };
+    }
+
+    playMusic(musicName) {
+        if (!this.enabled) return;
+
+        if (this.currentMusic && this.currentMusic.playing) {
+            this.stopMusic();
+        }
+
+        // Simple ambient music using oscillators
+        if (musicName === 'ambient') {
+            this.playAmbientMusic();
+        }
+    }
+
+    playAmbientMusic() {
+        if (!this.sounds.bgMusic.context) return;
+
+        const ctx = this.sounds.bgMusic.context;
+        const oscillator = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(220, ctx.currentTime);
+        gainNode.gain.setValueAtTime(this.musicVolume * 0.1, ctx.currentTime);
+
+        oscillator.connect(gainNode);
+        gainNode.connect(ctx.destination);
+
+        oscillator.start();
+
+        this.currentMusic = { oscillator, gainNode, playing: true };
+    }
+
+    stopMusic() {
+        if (this.currentMusic && this.currentMusic.oscillator) {
+            this.currentMusic.oscillator.stop();
+            this.currentMusic.playing = false;
+        }
+    }
+
+    playSFX(soundName) {
+        if (!this.enabled) return;
+
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(ctx.destination);
+
+        gainNode.gain.setValueAtTime(this.sfxVolume * 0.3, ctx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+
+        switch(soundName) {
+            case 'click':
+                oscillator.frequency.setValueAtTime(800, ctx.currentTime);
+                oscillator.type = 'square';
+                break;
+            case 'item':
+                oscillator.frequency.setValueAtTime(1000, ctx.currentTime);
+                oscillator.type = 'sine';
+                break;
+            case 'damage':
+                oscillator.frequency.setValueAtTime(100, ctx.currentTime);
+                oscillator.type = 'sawtooth';
+                break;
+            case 'heal':
+                oscillator.frequency.setValueAtTime(600, ctx.currentTime);
+                oscillator.type = 'sine';
+                break;
+            case 'achievement':
+                oscillator.frequency.setValueAtTime(1200, ctx.currentTime);
+                oscillator.type = 'triangle';
+                break;
+            case 'ghost':
+                oscillator.frequency.setValueAtTime(150, ctx.currentTime);
+                oscillator.type = 'sawtooth';
+                break;
+            case 'door':
+                oscillator.frequency.setValueAtTime(200, ctx.currentTime);
+                oscillator.type = 'square';
+                break;
+        }
+
+        oscillator.start(ctx.currentTime);
+        oscillator.stop(ctx.currentTime + 0.3);
+    }
+
+    toggle() {
+        this.enabled = !this.enabled;
+        if (!this.enabled) {
+            this.stopMusic();
+        }
+        return this.enabled;
+    }
+}
+
 class Player {
     constructor() {
         this.health = 100;
@@ -12,6 +159,11 @@ class Player {
         if (this.health < 0) this.health = 0;
         this.updateHealthBar();
 
+        // Play damage sound
+        if (window.game && window.game.audio) {
+            window.game.audio.playSFX('damage');
+        }
+
         // Flash effect
         document.querySelector('.story-text').classList.add('damage-flash');
         setTimeout(() => {
@@ -23,6 +175,11 @@ class Player {
         this.health += amount;
         if (this.health > this.maxHealth) this.health = this.maxHealth;
         this.updateHealthBar();
+
+        // Play heal sound
+        if (window.game && window.game.audio) {
+            window.game.audio.playSFX('heal');
+        }
     }
 
     isAlive() {
@@ -32,6 +189,11 @@ class Player {
     addItem(item) {
         this.inventory.push(item);
         this.updateInventoryDisplay();
+
+        // Play item pickup sound
+        if (window.game && window.game.audio) {
+            window.game.audio.playSFX('item');
+        }
     }
 
     hasItem(item) {
@@ -118,6 +280,11 @@ class Player {
         if (!this.achievements.has(achievement)) {
             this.achievements.add(achievement);
             this.showAchievementNotification(achievement);
+
+            // Play achievement sound
+            if (window.game && window.game.audio) {
+                window.game.audio.playSFX('achievement');
+            }
         }
     }
 
@@ -148,6 +315,9 @@ class Game {
         this.player = new Player();
         this.gameOver = false;
         this.currentRoom = 'entrance';
+        this.audio = new AudioManager();
+        this.stats = this.loadStats();
+        this.language = localStorage.getItem('gameLanguage') || 'en';
 
         // Setup inventory button
         document.getElementById('inventoryBtn').addEventListener('click', () => {
@@ -156,6 +326,43 @@ class Game {
 
         // Load saved game if exists
         this.loadGame();
+    }
+
+    loadStats() {
+        const savedStats = localStorage.getItem('hauntedMansionStats');
+        if (savedStats) {
+            return JSON.parse(savedStats);
+        }
+        return {
+            gamesPlayed: 0,
+            goodEndings: 0,
+            evilEndings: 0,
+            neutralEndings: 0,
+            badEndings: 0,
+            totalAchievements: 0,
+            bestHealthScore: 0
+        };
+    }
+
+    saveStats() {
+        localStorage.setItem('hauntedMansionStats', JSON.stringify(this.stats));
+    }
+
+    t(key) {
+        return translations[this.language][key] || translations['en'][key] || key;
+    }
+
+    toggleLanguage() {
+        this.language = this.language === 'en' ? 'ru' : 'en';
+        localStorage.setItem('gameLanguage', this.language);
+        this.updateUILanguage();
+        return this.language;
+    }
+
+    updateUILanguage() {
+        document.querySelector('h1').textContent = `🏚️ ${this.t('title')}`;
+        const healthLabel = document.querySelector('.label');
+        if (healthLabel) healthLabel.textContent = this.t('health');
     }
 
     saveGame() {
@@ -168,7 +375,7 @@ class Game {
             gameOver: this.gameOver
         };
         localStorage.setItem('hauntedMansionSave', JSON.stringify(saveData));
-        this.showNotification('Game Saved! 💾');
+        this.showNotification(this.t('gameSaved'));
     }
 
     loadGame() {
@@ -192,7 +399,7 @@ class Game {
 
     deleteSave() {
         localStorage.removeItem('hauntedMansionSave');
-        this.showNotification('Save Deleted! 🗑️');
+        this.showNotification(this.t('saveDeleted'));
     }
 
     showNotification(message) {
@@ -241,6 +448,7 @@ class Game {
     entranceHall() {
         this.currentRoom = 'entrance';
         this.player.visitRoom('Entrance Hall');
+        this.audio.playSFX('door');
         this.saveGame();
 
         const choices = [
@@ -357,6 +565,8 @@ class Game {
     }
 
     ghostEncounter() {
+        this.audio.playSFX('ghost');
+
         if (this.player.hasItem('Holy Water')) {
             this.showScene(
                 '👻 Ghost Encounter!',
@@ -639,6 +849,13 @@ class Game {
         if (this.player.health === 100) {
             this.player.unlockAchievement('Flawless Victory');
         }
+
+        // Update stats
+        this.stats.gamesPlayed++;
+        this.stats.goodEndings++;
+        this.stats.totalAchievements = Math.max(this.stats.totalAchievements, this.player.achievements.size);
+        this.stats.bestHealthScore = Math.max(this.stats.bestHealthScore, this.player.health);
+        this.saveStats();
         this.deleteSave();
 
         this.showScene(
@@ -655,16 +872,34 @@ class Game {
                     <p class="objective">The town is safe. The disappearances will stop. You are hailed as a hero!</p>
                     <h3 style="color: #44ff44; margin-top: 20px;">🏆 THE END - You saved the town!</h3>
                     <p style="margin-top: 20px;">Achievements: ${this.player.achievements.size}/7 unlocked</p>
+                    <div style="margin-top: 20px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px;">
+                        <h4 style="color: #ffa500;">📊 Your Statistics</h4>
+                        <p>Games Played: ${this.stats.gamesPlayed}</p>
+                        <p>Good Endings: ${this.stats.goodEndings}</p>
+                        <p>Evil Endings: ${this.stats.evilEndings}</p>
+                        <p>Neutral Endings: ${this.stats.neutralEndings}</p>
+                        <p>Bad Endings: ${this.stats.badEndings}</p>
+                        <p>Best Health Score: ${this.stats.bestHealthScore} HP</p>
+                        <p>Total Achievements Unlocked: ${this.stats.totalAchievements}/7</p>
+                    </div>
                 </div>
             `,
             [
-                { text: '🔄 Play Again', action: 'game.start()' }
+                { text: this.t('playAgain'), action: 'game.start()' }
             ]
         );
     }
 
     evilEnding() {
         this.gameOver = true;
+
+        // Update stats
+        this.stats.gamesPlayed++;
+        this.stats.evilEndings++;
+        this.stats.totalAchievements = Math.max(this.stats.totalAchievements, this.player.achievements.size);
+        this.saveStats();
+        this.deleteSave();
+
         this.showScene(
             '⚫ DARK ENDING: Corrupted',
             `
@@ -688,6 +923,14 @@ class Game {
 
     escapeEnding() {
         this.gameOver = true;
+
+        // Update stats
+        this.stats.gamesPlayed++;
+        this.stats.neutralEndings++;
+        this.stats.totalAchievements = Math.max(this.stats.totalAchievements, this.player.achievements.size);
+        this.saveStats();
+        this.deleteSave();
+
         this.showScene(
             '🚪 NEUTRAL ENDING: Survivor',
             `
@@ -711,6 +954,14 @@ class Game {
 
     badEnding(message) {
         this.gameOver = true;
+
+        // Update stats
+        this.stats.gamesPlayed++;
+        this.stats.badEndings++;
+        this.stats.totalAchievements = Math.max(this.stats.totalAchievements, this.player.achievements.size);
+        this.saveStats();
+        this.deleteSave();
+
         this.showScene(
             '💀 BAD ENDING: Defeat',
             `
@@ -732,3 +983,7 @@ class Game {
 
 // Initialize game
 const game = new Game();
+window.game = game; // Make game accessible globally for audio/sound effects
+
+// Initialize UI language
+game.updateUILanguage();
