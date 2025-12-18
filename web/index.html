@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Haunted Mansion Mystery</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏚️ The Haunted Mansion Mystery</h1>
+            <div class="status-bar">
+                <div class="health-container">
+                    <span class="label">Health:</span>
+                    <div class="health-bar">
+                        <div class="health-fill" id="healthBar"></div>
+                    </div>
+                    <span id="healthText">100/100</span>
+                </div>
+                <button class="inventory-btn" id="inventoryBtn">
+                    🎒 Inventory (<span id="itemCount">0</span>)
+                </button>
+            </div>
+        </header>
+
+        <main>
+            <div class="game-screen">
+                <div class="story-text" id="storyText">
+                    <h2>Welcome, Detective</h2>
+                    <p>You are a detective investigating mysterious disappearances in the old Blackwood Mansion.</p>
+                    <p>As you approach the mansion, a sudden storm forces you inside. The door slams shut behind you...</p>
+                    <p class="objective">Your goal: Uncover the mansion's secrets and escape alive!</p>
+                </div>
+
+                <div class="choices" id="choices">
+                    <button class="choice-btn" onclick="game.start()">Begin Your Investigation</button>
+                </div>
+            </div>
+
+            <div class="inventory-panel" id="inventoryPanel">
+                <div class="inventory-header">
+                    <h3>🎒 Your Inventory</h3>
+                    <button class="close-btn" onclick="game.toggleInventory()">✕</button>
+                </div>
+                <div class="inventory-items" id="inventoryItems">
+                    <p class="empty-inventory">Your inventory is empty</p>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Made with C++ & JavaScript • University Project</p>
+        </footer>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
