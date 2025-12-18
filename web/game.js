@@ -15,6 +15,8 @@ const translations = {
         title: "The Haunted Mansion Mystery",
         health: "Health:",
         inventory: "Inventory",
+        achievements: "Achievements",
+        yourInventory: "Your Inventory",
         itemCount: "items",
         emptyInventory: "Your inventory is empty",
         gameSaved: "Game Saved! 💾",
@@ -22,12 +24,39 @@ const translations = {
         achievementUnlocked: "Achievement Unlocked!",
         playAgain: "🔄 Play Again",
         tryAgain: "🔄 Try Again",
-        // Add more translations as needed
+
+        // Endings
+        goodEndingTitle: "✨ GOOD ENDING: Hero",
+        goodEndingText: "The town is safe. The disappearances will stop. You are hailed as a hero!",
+        goodEndingFinal: "🏆 THE END - You saved the town!",
+
+        evilEndingTitle: "⚫ DARK ENDING: Corrupted",
+        evilEndingText: "You have become the new master of the Haunted Mansion. The disappearances will continue...",
+        evilEndingFinal: "😈 THE END - You joined the darkness",
+
+        neutralEndingTitle: "🚪 NEUTRAL ENDING: Survivor",
+        neutralEndingText: "Others may not be so lucky to escape...",
+        neutralEndingFinal: "🏃 THE END - You escaped with your life",
+
+        badEndingTitle: "💀 BAD ENDING: Defeat",
+        badEndingFinal: "💀 GAME OVER",
+
+        // UI
+        statistics: "Your Statistics",
+        gamesPlayed: "Games Played",
+        goodEndings: "Good Endings",
+        evilEndings: "Evil Endings",
+        neutralEndings: "Neutral Endings",
+        badEndings: "Bad Endings",
+        bestHealth: "Best Health Score",
+        totalAchievements: "Total Achievements Unlocked",
     },
     ru: {
         title: "Тайна Проклятого Особняка",
         health: "Здоровье:",
         inventory: "Инвентарь",
+        achievements: "Достижения",
+        yourInventory: "Ваш инвентарь",
         itemCount: "предметов",
         emptyInventory: "Ваш инвентарь пуст",
         gameSaved: "Игра сохранена! 💾",
@@ -35,6 +64,32 @@ const translations = {
         achievementUnlocked: "Достижение получено!",
         playAgain: "🔄 Играть снова",
         tryAgain: "🔄 Попробовать снова",
+
+        // Endings
+        goodEndingTitle: "✨ ХОРОШАЯ КОНЦОВКА: Герой",
+        goodEndingText: "Город в безопасности. Исчезновения прекратятся. Вас превозносят как героя!",
+        goodEndingFinal: "🏆 КОНЕЦ - Вы спасли город!",
+
+        evilEndingTitle: "⚫ ТЁМНАЯ КОНЦОВКА: Развращённый",
+        evilEndingText: "Вы стали новым хозяином Проклятого особняка. Исчезновения продолжатся...",
+        evilEndingFinal: "😈 КОНЕЦ - Вы присоединились к тьме",
+
+        neutralEndingTitle: "🚪 НЕЙТРАЛЬНАЯ КОНЦОВКА: Выживший",
+        neutralEndingText: "Другим может не так повезти сбежать...",
+        neutralEndingFinal: "🏃 КОНЕЦ - Вы сбежали живым",
+
+        badEndingTitle: "💀 ПЛОХАЯ КОНЦОВКА: Поражение",
+        badEndingFinal: "💀 ИГРА ОКОНЧЕНА",
+
+        // UI
+        statistics: "Ваша статистика",
+        gamesPlayed: "Игр сыграно",
+        goodEndings: "Хорошие концовки",
+        evilEndings: "Злые концовки",
+        neutralEndings: "Нейтральные концовки",
+        badEndings: "Плохие концовки",
+        bestHealth: "Лучший результат здоровья",
+        totalAchievements: "Всего достижений разблокировано",
     }
 };
 
@@ -316,14 +371,16 @@ class Player {
         itemCount.textContent = this.inventory.length;
 
         if (this.inventory.length === 0) {
-            inventoryItems.innerHTML = '<p class="empty-inventory">Your inventory is empty</p>';
+            const emptyText = window.game ? window.game.t('emptyInventory') : 'Your inventory is empty';
+            inventoryItems.innerHTML = `<p class="empty-inventory">${emptyText}</p>`;
         } else {
             inventoryItems.innerHTML = this.inventory.map((item, index) => {
                 const isUsable = item === 'Health Potion';
+                const useText = window.game && window.game.language === 'ru' ? 'Использовать' : 'Use';
                 return `
                     <div class="item ${isUsable ? 'usable' : ''}">
                         <div class="item-name">${this.getItemIcon(item)} ${item}</div>
-                        ${isUsable ? `<button class="use-btn" onclick="game.useItem('${item}', ${index})">Use</button>` : ''}
+                        ${isUsable ? `<button class="use-btn" onclick="game.useItem('${item}', ${index})">${useText}</button>` : ''}
                     </div>
                 `;
             }).join('');
@@ -450,9 +507,39 @@ class Game {
     }
 
     updateUILanguage() {
+        // Update header
         document.querySelector('h1').textContent = `🏚️ ${this.t('title')}`;
         const healthLabel = document.querySelector('.label');
         if (healthLabel) healthLabel.textContent = this.t('health');
+
+        // Update inventory button
+        const inventoryBtn = document.getElementById('inventoryBtn');
+        if (inventoryBtn) {
+            inventoryBtn.innerHTML = `🎒 ${this.t('inventory')} (<span id="itemCount">${this.player.inventory.length}</span>)`;
+        }
+
+        // Update achievements button
+        const achievementsBtn = document.querySelector('.inventory-btn[onclick*="toggleAchievements"]');
+        if (achievementsBtn) {
+            const count = achievementsBtn.querySelector('#achievementsCount');
+            const countText = count ? count.textContent : '0/7';
+            achievementsBtn.innerHTML = `🏆 ${this.t('achievements')} (<span id="achievementsCount">${countText}</span>)`;
+        }
+
+        // Update inventory panel header
+        const inventoryHeader = document.querySelector('#inventoryPanel .inventory-header h3');
+        if (inventoryHeader) {
+            inventoryHeader.textContent = `🎒 ${this.t('yourInventory')}`;
+        }
+
+        // Update achievements panel header
+        const achievementsHeader = document.querySelector('#achievementsPanel .inventory-header h3');
+        if (achievementsHeader) {
+            achievementsHeader.textContent = `🏆 ${this.t('achievements')}`;
+        }
+
+        // Update empty inventory text
+        this.player.updateInventoryDisplay();
     }
 
     updateVolume(value) {
@@ -993,7 +1080,7 @@ class Game {
         this.deleteSave();
 
         this.showScene(
-            '✨ GOOD ENDING: Hero',
+            this.t('goodEndingTitle'),
             `
                 <div class="ending good">
                     <p>You open the Ancient Book and begin reciting the sacred words...</p>
@@ -1003,18 +1090,18 @@ class Game {
                     <p>The mansion begins to shake and crumble around you. You run!</p>
                     <p>You burst through the front door just as the mansion collapses behind you.</p>
                     <p>The storm has cleared. The sun is rising.</p>
-                    <p class="objective">The town is safe. The disappearances will stop. You are hailed as a hero!</p>
-                    <h3 style="color: #44ff44; margin-top: 20px;">🏆 THE END - You saved the town!</h3>
-                    <p style="margin-top: 20px;">Achievements: ${this.player.achievements.size}/7 unlocked</p>
+                    <p class="objective">${this.t('goodEndingText')}</p>
+                    <h3 style="color: #44ff44; margin-top: 20px;">${this.t('goodEndingFinal')}</h3>
+                    <p style="margin-top: 20px;">${this.t('achievements')}: ${this.player.achievements.size}/7</p>
                     <div style="margin-top: 20px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px;">
-                        <h4 style="color: #ffa500;">📊 Your Statistics</h4>
-                        <p>Games Played: ${this.stats.gamesPlayed}</p>
-                        <p>Good Endings: ${this.stats.goodEndings}</p>
-                        <p>Evil Endings: ${this.stats.evilEndings}</p>
-                        <p>Neutral Endings: ${this.stats.neutralEndings}</p>
-                        <p>Bad Endings: ${this.stats.badEndings}</p>
-                        <p>Best Health Score: ${this.stats.bestHealthScore} HP</p>
-                        <p>Total Achievements Unlocked: ${this.stats.totalAchievements}/7</p>
+                        <h4 style="color: #ffa500;">📊 ${this.t('statistics')}</h4>
+                        <p>${this.t('gamesPlayed')}: ${this.stats.gamesPlayed}</p>
+                        <p>${this.t('goodEndings')}: ${this.stats.goodEndings}</p>
+                        <p>${this.t('evilEndings')}: ${this.stats.evilEndings}</p>
+                        <p>${this.t('neutralEndings')}: ${this.stats.neutralEndings}</p>
+                        <p>${this.t('badEndings')}: ${this.stats.badEndings}</p>
+                        <p>${this.t('bestHealth')}: ${this.stats.bestHealthScore} HP</p>
+                        <p>${this.t('totalAchievements')}: ${this.stats.totalAchievements}/7</p>
                     </div>
                 </div>
             `,
@@ -1035,7 +1122,7 @@ class Game {
         this.deleteSave();
 
         this.showScene(
-            '⚫ DARK ENDING: Corrupted',
+            this.t('evilEndingTitle'),
             `
                 <div class="ending evil">
                     <p>You approach the spirit and break the chains binding it...</p>
@@ -1045,12 +1132,12 @@ class Game {
                     <p>You look at your reflection in a nearby mirror.</p>
                     <p>Your eyes... they're completely black. Empty. Like the spirit's.</p>
                     <p>You feel no remorse. No fear. Only hunger for more power.</p>
-                    <p class="objective">You have become the new master of the Haunted Mansion. The disappearances will continue...</p>
-                    <h3 style="color: #8b008b; margin-top: 20px;">😈 THE END - You joined the darkness</h3>
+                    <p class="objective">${this.t('evilEndingText')}</p>
+                    <h3 style="color: #8b008b; margin-top: 20px;">${this.t('evilEndingFinal')}</h3>
                 </div>
             `,
             [
-                { text: '🔄 Play Again (Try a different path?)', action: 'game.start()' }
+                { text: this.t('playAgain'), action: 'game.start()' }
             ]
         );
     }
@@ -1066,7 +1153,7 @@ class Game {
         this.deleteSave();
 
         this.showScene(
-            '🚪 NEUTRAL ENDING: Survivor',
+            this.t('neutralEndingTitle'),
             `
                 <div class="ending neutral">
                     <p>This is too much. This is beyond you.</p>
@@ -1076,12 +1163,12 @@ class Game {
                     <p style="color: #ffaa00; font-weight: bold;">You survive. That's what matters, right?</p>
                     <p>But as you drive away, you can see the mansion in your rearview mirror.</p>
                     <p>It still stands. The mystery remains unsolved.</p>
-                    <p class="objective">Others may not be so lucky to escape...</p>
-                    <h3 style="color: #ffa500; margin-top: 20px;">🏃 THE END - You escaped with your life</h3>
+                    <p class="objective">${this.t('neutralEndingText')}</p>
+                    <h3 style="color: #ffa500; margin-top: 20px;">${this.t('neutralEndingFinal')}</h3>
                 </div>
             `,
             [
-                { text: '🔄 Play Again (Face your fears?)', action: 'game.start()' }
+                { text: this.t('playAgain'), action: 'game.start()' }
             ]
         );
     }
@@ -1097,7 +1184,7 @@ class Game {
         this.deleteSave();
 
         this.showScene(
-            '💀 BAD ENDING: Defeat',
+            this.t('badEndingTitle'),
             `
                 <div class="ending bad">
                     <p style="color: #ff4444; font-weight: bold;">${message}</p>
@@ -1105,11 +1192,11 @@ class Game {
                     <p>You have fallen in the Haunted Mansion.</p>
                     <p>Your story ends here...</p>
                     <p>Perhaps in another life, you will make different choices.</p>
-                    <h3 style="color: #dc143c; margin-top: 20px;">💀 GAME OVER</h3>
+                    <h3 style="color: #dc143c; margin-top: 20px;">${this.t('badEndingFinal')}</h3>
                 </div>
             `,
             [
-                { text: '🔄 Try Again', action: 'game.start()' }
+                { text: this.t('tryAgain'), action: 'game.start()' }
             ]
         );
     }
