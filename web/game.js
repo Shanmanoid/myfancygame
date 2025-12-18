@@ -197,6 +197,11 @@ class AudioManager {
         this.enabled = !this.enabled;
         if (!this.enabled) {
             this.stopMusic();
+        } else {
+            // If game has started, resume music
+            if (window.game && !window.game.gameOver && window.game.currentRoom !== 'entrance') {
+                this.playMusic('ambient');
+            }
         }
         return this.enabled;
     }
@@ -529,8 +534,10 @@ class Game {
         this.player.updateHealthBar();
         this.player.updateInventoryDisplay();
 
-        // Start ambient music
-        this.audio.playMusic('ambient');
+        // Start ambient music (this IS a user interaction - button click)
+        if (this.audio.enabled) {
+            this.audio.playMusic('ambient');
+        }
 
         this.entranceHall();
     }
