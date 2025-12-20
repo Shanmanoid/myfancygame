@@ -6,112 +6,12 @@ const ALL_ACHIEVEMENTS = [
     { id: 'Healer', icon: '💊', description: 'Use a Health Potion' },
     { id: 'Hero of the Town', icon: '🏆', description: 'Get the good ending' },
     { id: 'Flawless Victory', icon: '💯', description: 'Win with full health' },
-    { id: 'Survivor', icon: '🛡️', description: 'Complete the game' }
+    { id: 'Survivor', icon: '🛡️', description: 'Complete the game' },
+    { id: 'True Master', icon: '🌟', description: 'Unlock the secret ending' },
+    { id: 'Martyr', icon: '⚰️', description: 'Sacrifice yourself for the greater good' }
 ];
 
-// Language translations
-const translations = {
-    en: {
-        title: "The Haunted Mansion Mystery",
-        health: "Health:",
-        inventory: "Inventory",
-        achievements: "Achievements",
-        yourInventory: "Your Inventory",
-        itemCount: "items",
-        emptyInventory: "Your inventory is empty",
-        gameSaved: "Game Saved! 💾",
-        saveDeleted: "Save Deleted! 🗑️",
-        achievementUnlocked: "Achievement Unlocked!",
-        playAgain: "🔄 Play Again",
-        tryAgain: "🔄 Try Again",
-
-        // Endings
-        goodEndingTitle: "✨ GOOD ENDING: Hero",
-        goodEndingText: "The town is safe. The disappearances will stop. You are hailed as a hero!",
-        goodEndingFinal: "🏆 THE END - You saved the town!",
-
-        evilEndingTitle: "⚫ DARK ENDING: Corrupted",
-        evilEndingText: "You have become the new master of the Haunted Mansion. The disappearances will continue...",
-        evilEndingFinal: "😈 THE END - You joined the darkness",
-
-        neutralEndingTitle: "🚪 NEUTRAL ENDING: Survivor",
-        neutralEndingText: "Others may not be so lucky to escape...",
-        neutralEndingFinal: "🏃 THE END - You escaped with your life",
-
-        badEndingTitle: "💀 BAD ENDING: Defeat",
-        badEndingFinal: "💀 GAME OVER",
-
-        // UI
-        statistics: "Your Statistics",
-        gamesPlayed: "Games Played",
-        goodEndings: "Good Endings",
-        evilEndings: "Evil Endings",
-        neutralEndings: "Neutral Endings",
-        badEndings: "Bad Endings",
-        bestHealth: "Best Health Score",
-        totalAchievements: "Total Achievements Unlocked",
-
-        // Difficulty
-        selectDifficulty: "Select Difficulty",
-        easy: "Easy",
-        easyDesc: "More health, less damage - Perfect for beginners",
-        normal: "Normal",
-        normalDesc: "Balanced experience - Standard gameplay",
-        hard: "Hard",
-        hardDesc: "Less health, more damage - For experienced players",
-        difficulty: "Difficulty",
-    },
-    ru: {
-        title: "Тайна Проклятого Особняка",
-        health: "Здоровье:",
-        inventory: "Инвентарь",
-        achievements: "Достижения",
-        yourInventory: "Ваш инвентарь",
-        itemCount: "предметов",
-        emptyInventory: "Ваш инвентарь пуст",
-        gameSaved: "Игра сохранена! 💾",
-        saveDeleted: "Сохранение удалено! 🗑️",
-        achievementUnlocked: "Достижение получено!",
-        playAgain: "🔄 Играть снова",
-        tryAgain: "🔄 Попробовать снова",
-
-        // Endings
-        goodEndingTitle: "✨ ХОРОШАЯ КОНЦОВКА: Герой",
-        goodEndingText: "Город в безопасности. Исчезновения прекратятся. Вас превозносят как героя!",
-        goodEndingFinal: "🏆 КОНЕЦ - Вы спасли город!",
-
-        evilEndingTitle: "⚫ ТЁМНАЯ КОНЦОВКА: Развращённый",
-        evilEndingText: "Вы стали новым хозяином Проклятого особняка. Исчезновения продолжатся...",
-        evilEndingFinal: "😈 КОНЕЦ - Вы присоединились к тьме",
-
-        neutralEndingTitle: "🚪 НЕЙТРАЛЬНАЯ КОНЦОВКА: Выживший",
-        neutralEndingText: "Другим может не так повезти сбежать...",
-        neutralEndingFinal: "🏃 КОНЕЦ - Вы сбежали живым",
-
-        badEndingTitle: "💀 ПЛОХАЯ КОНЦОВКА: Поражение",
-        badEndingFinal: "💀 ИГРА ОКОНЧЕНА",
-
-        // UI
-        statistics: "Ваша статистика",
-        gamesPlayed: "Игр сыграно",
-        goodEndings: "Хорошие концовки",
-        evilEndings: "Злые концовки",
-        neutralEndings: "Нейтральные концовки",
-        badEndings: "Плохие концовки",
-        bestHealth: "Лучший результат здоровья",
-        totalAchievements: "Всего достижений разблокировано",
-
-        // Difficulty
-        selectDifficulty: "Выберите сложность",
-        easy: "Легко",
-        easyDesc: "Больше здоровья, меньше урона - Для новичков",
-        normal: "Нормально",
-        normalDesc: "Сбалансированный опыт - Стандартная игра",
-        hard: "Сложно",
-        hardDesc: "Меньше здоровья, больше урона - Для опытных игроков",
-        difficulty: "Сложность",
-    }
-};
+// Game constants removed - all text will be in English only
 
 // Audio Manager
 class AudioManager {
@@ -402,16 +302,14 @@ class Player {
         itemCount.textContent = this.inventory.length;
 
         if (this.inventory.length === 0) {
-            const emptyText = window.game ? window.game.t('emptyInventory') : 'Your inventory is empty';
-            inventoryItems.innerHTML = `<p class="empty-inventory">${emptyText}</p>`;
+            inventoryItems.innerHTML = `<p class="empty-inventory">Your inventory is empty</p>`;
         } else {
             inventoryItems.innerHTML = this.inventory.map((item, index) => {
                 const isUsable = item === 'Health Potion';
-                const useText = window.game && window.game.language === 'ru' ? 'Использовать' : 'Use';
                 return `
                     <div class="item ${isUsable ? 'usable' : ''}">
                         <div class="item-name">${this.getItemIcon(item)} ${item}</div>
-                        ${isUsable ? `<button class="use-btn" onclick="game.useItem('${item}', ${index})">${useText}</button>` : ''}
+                        ${isUsable ? `<button class="use-btn" onclick="game.useItem('${item}', ${index})">Use</button>` : ''}
                     </div>
                 `;
             }).join('');
@@ -424,11 +322,13 @@ class Player {
                 alert('Your health is already full!');
                 return;
             }
-            this.heal(50);
+            const healAmount = 50;
+            const actualHeal = Math.min(healAmount, this.maxHealth - this.health);
+            this.heal(actualHeal);
             this.inventory.splice(index, 1);
             this.updateInventoryDisplay();
             this.unlockAchievement('Healer');
-            alert('You used the Health Potion and restored 50 HP!');
+            alert(`You used the Health Potion and restored ${actualHeal} HP!`);
         }
     }
 
@@ -490,7 +390,6 @@ class Game {
         this.currentRoom = 'entrance';
         this.audio = new AudioManager();
         this.stats = this.loadStats();
-        this.language = localStorage.getItem('gameLanguage') || 'en';
 
         // Load saved volume
         const savedVolume = localStorage.getItem('musicVolume') || '30';
@@ -527,52 +426,6 @@ class Game {
         localStorage.setItem('hauntedMansionStats', JSON.stringify(this.stats));
     }
 
-    t(key) {
-        return translations[this.language][key] || translations['en'][key] || key;
-    }
-
-    toggleLanguage() {
-        this.language = this.language === 'en' ? 'ru' : 'en';
-        localStorage.setItem('gameLanguage', this.language);
-        this.updateUILanguage();
-        return this.language;
-    }
-
-    updateUILanguage() {
-        // Update header
-        document.querySelector('h1').textContent = `🏚️ ${this.t('title')}`;
-        const healthLabel = document.querySelector('.label');
-        if (healthLabel) healthLabel.textContent = this.t('health');
-
-        // Update inventory button
-        const inventoryBtn = document.getElementById('inventoryBtn');
-        if (inventoryBtn) {
-            inventoryBtn.innerHTML = `🎒 ${this.t('inventory')} (<span id="itemCount">${this.player.inventory.length}</span>)`;
-        }
-
-        // Update achievements button
-        const achievementsBtn = document.querySelector('.inventory-btn[onclick*="toggleAchievements"]');
-        if (achievementsBtn) {
-            const count = achievementsBtn.querySelector('#achievementsCount');
-            const countText = count ? count.textContent : '0/7';
-            achievementsBtn.innerHTML = `🏆 ${this.t('achievements')} (<span id="achievementsCount">${countText}</span>)`;
-        }
-
-        // Update inventory panel header
-        const inventoryHeader = document.querySelector('#inventoryPanel .inventory-header h3');
-        if (inventoryHeader) {
-            inventoryHeader.textContent = `🎒 ${this.t('yourInventory')}`;
-        }
-
-        // Update achievements panel header
-        const achievementsHeader = document.querySelector('#achievementsPanel .inventory-header h3');
-        if (achievementsHeader) {
-            achievementsHeader.textContent = `🏆 ${this.t('achievements')}`;
-        }
-
-        // Update empty inventory text
-        this.player.updateInventoryDisplay();
-    }
 
     updateVolume(value) {
         const volume = value / 100;
@@ -594,7 +447,7 @@ class Game {
             difficulty: this.difficulty
         };
         localStorage.setItem('hauntedMansionSave', JSON.stringify(saveData));
-        this.showNotification(this.t('gameSaved'));
+        this.showNotification('Game Saved! 💾');
     }
 
     loadGame() {
@@ -625,7 +478,7 @@ class Game {
 
     deleteSave() {
         localStorage.removeItem('hauntedMansionSave');
-        this.showNotification(this.t('saveDeleted'));
+        this.showNotification('Save Deleted! 🗑️');
     }
 
     showNotification(message) {
@@ -684,9 +537,21 @@ class Game {
             ${text}
         `;
 
-        choicesDiv.innerHTML = choices.map(choice =>
-            `<button class="choice-btn ${choice.class || ''}" onclick="${choice.action}">${choice.text}</button>`
-        ).join('');
+        // Clear previous choices
+        choicesDiv.innerHTML = '';
+
+        // Create buttons with proper event listeners
+        choices.forEach(choice => {
+            const button = document.createElement('button');
+            button.className = `choice-btn ${choice.class || ''}`;
+            button.textContent = choice.text;
+            button.onclick = () => {
+                // Use Function constructor to evaluate the action string
+                const func = new Function(choice.action);
+                func();
+            };
+            choicesDiv.appendChild(button);
+        });
 
         // Scroll to top
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -698,22 +563,22 @@ class Game {
 
     showDifficultySelection() {
         this.showScene(
-            this.t('selectDifficulty'),
+            'Select Difficulty',
             `
                 <p>Choose your preferred difficulty level. This will affect your starting health and damage taken.</p>
             `,
             [
                 {
-                    text: `🟢 ${this.t('easy')} - ${this.t('easyDesc')}`,
+                    text: '🟢 Easy - More health, less damage (Perfect for beginners)',
                     action: 'game.startWithDifficulty("easy")',
                     class: 'success'
                 },
                 {
-                    text: `🟡 ${this.t('normal')} - ${this.t('normalDesc')}`,
+                    text: '🟡 Normal - Balanced experience (Standard gameplay)',
                     action: 'game.startWithDifficulty("normal")'
                 },
                 {
-                    text: `🔴 ${this.t('hard')} - ${this.t('hardDesc')}`,
+                    text: '🔴 Hard - Less health, more damage (For experienced players)',
                     action: 'game.startWithDifficulty("hard")',
                     class: 'danger'
                 }
@@ -748,7 +613,8 @@ class Game {
             { text: '🚪 Go to the Kitchen (right door)', action: 'game.kitchen()' },
             { text: '🚪 Go upstairs to the Bedroom', action: 'game.bedroom()' },
             { text: '🚪 Go down to the Basement', action: 'game.basement()' },
-            { text: '🚪 Go upstairs to the Attic', action: 'game.attic()' }
+            { text: '🚪 Go upstairs to the Attic', action: 'game.attic()' },
+            { text: '🏃 Leave the mansion immediately', action: 'game.cowardEnding()', class: 'danger' }
         ];
 
         this.showScene(
@@ -1117,6 +983,29 @@ class Game {
             this.player.unlockAchievement('Master Explorer');
         }
 
+        // Check if player has all items for secret ending
+        const hasAllItems = this.player.hasItem('Ancient Book') &&
+                           this.player.hasItem('Holy Water') &&
+                           this.player.hasItem('Silver Key') &&
+                           this.player.hasItem('Rusty Sword') &&
+                           this.player.hasItem('Basement Key');
+
+        const choices = [
+            { text: '✨ Perform the banishment ritual (Destroy the spirit)', action: 'game.goodEnding()', class: 'success' },
+            { text: '🔓 Free the spirit (Accept its offer)', action: 'game.evilEnding()', class: 'danger' },
+            { text: '💀 Sacrifice yourself to seal the spirit forever', action: 'game.sacrificeEnding()', class: 'danger' },
+            { text: '🏃 Run away and escape the mansion', action: 'game.escapeEnding()' }
+        ];
+
+        // Add secret option if player has all items
+        if (hasAllItems) {
+            choices.unshift({
+                text: '🌟 Use all items to perform the Ancient Ritual of Purification',
+                action: 'game.secretEnding()',
+                class: 'success'
+            });
+        }
+
         this.showScene(
             '⚡ The Ritual Chamber',
             `
@@ -1125,13 +1014,10 @@ class Game {
                 <p>In the center, a powerful dark spirit is bound in chains of pure light.</p>
                 <p style="color: #ff4444; font-style: italic;">"Free me, mortal, and I shall grant you power beyond your wildest imagination..."</p>
                 <p>You remember the banishment ritual from the Ancient Book.</p>
+                ${hasAllItems ? '<p style="color: #ffd700; font-weight: bold;">✨ Wait... with all these items, you could perform the legendary Purification Ritual!</p>' : ''}
                 <p class="objective">This is it. Your choice will determine everything.</p>
             `,
-            [
-                { text: '✨ Perform the banishment ritual (Destroy the spirit)', action: 'game.goodEnding()', class: 'success' },
-                { text: '🔓 Free the spirit (Accept its offer)', action: 'game.evilEnding()', class: 'danger' },
-                { text: '🏃 Run away and escape the mansion', action: 'game.escapeEnding()' }
-            ]
+            choices
         );
     }
 
@@ -1151,7 +1037,7 @@ class Game {
         this.deleteSave();
 
         this.showScene(
-            this.t('goodEndingTitle'),
+            '✨ GOOD ENDING: Hero',
             `
                 <div class="ending good">
                     <p>You open the Ancient Book and begin reciting the sacred words...</p>
@@ -1161,23 +1047,23 @@ class Game {
                     <p>The mansion begins to shake and crumble around you. You run!</p>
                     <p>You burst through the front door just as the mansion collapses behind you.</p>
                     <p>The storm has cleared. The sun is rising.</p>
-                    <p class="objective">${this.t('goodEndingText')}</p>
-                    <h3 style="color: #44ff44; margin-top: 20px;">${this.t('goodEndingFinal')}</h3>
-                    <p style="margin-top: 20px;">${this.t('achievements')}: ${this.player.achievements.size}/7</p>
+                    <p class="objective">The town is safe. The disappearances will stop. You are hailed as a hero!</p>
+                    <h3 style="color: #44ff44; margin-top: 20px;">🏆 THE END - You saved the town!</h3>
+                    <p style="margin-top: 20px;">Achievements: ${this.player.achievements.size}/7</p>
                     <div style="margin-top: 20px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px;">
-                        <h4 style="color: #ffa500;">📊 ${this.t('statistics')}</h4>
-                        <p>${this.t('gamesPlayed')}: ${this.stats.gamesPlayed}</p>
-                        <p>${this.t('goodEndings')}: ${this.stats.goodEndings}</p>
-                        <p>${this.t('evilEndings')}: ${this.stats.evilEndings}</p>
-                        <p>${this.t('neutralEndings')}: ${this.stats.neutralEndings}</p>
-                        <p>${this.t('badEndings')}: ${this.stats.badEndings}</p>
-                        <p>${this.t('bestHealth')}: ${this.stats.bestHealthScore} HP</p>
-                        <p>${this.t('totalAchievements')}: ${this.stats.totalAchievements}/7</p>
+                        <h4 style="color: #ffa500;">📊 Your Statistics</h4>
+                        <p>Games Played: ${this.stats.gamesPlayed}</p>
+                        <p>Good Endings: ${this.stats.goodEndings}</p>
+                        <p>Evil Endings: ${this.stats.evilEndings}</p>
+                        <p>Neutral Endings: ${this.stats.neutralEndings}</p>
+                        <p>Bad Endings: ${this.stats.badEndings}</p>
+                        <p>Best Health Score: ${this.stats.bestHealthScore} HP</p>
+                        <p>Total Achievements Unlocked: ${this.stats.totalAchievements}/7</p>
                     </div>
                 </div>
             `,
             [
-                { text: this.t('playAgain'), action: 'game.start()' }
+                { text: '🔄 Play Again', action: 'game.start()' }
             ]
         );
     }
@@ -1193,7 +1079,7 @@ class Game {
         this.deleteSave();
 
         this.showScene(
-            this.t('evilEndingTitle'),
+            '⚫ DARK ENDING: Corrupted',
             `
                 <div class="ending evil">
                     <p>You approach the spirit and break the chains binding it...</p>
@@ -1203,12 +1089,12 @@ class Game {
                     <p>You look at your reflection in a nearby mirror.</p>
                     <p>Your eyes... they're completely black. Empty. Like the spirit's.</p>
                     <p>You feel no remorse. No fear. Only hunger for more power.</p>
-                    <p class="objective">${this.t('evilEndingText')}</p>
-                    <h3 style="color: #8b008b; margin-top: 20px;">${this.t('evilEndingFinal')}</h3>
+                    <p class="objective">You have become the new master of the Haunted Mansion. The disappearances will continue...</p>
+                    <h3 style="color: #8b008b; margin-top: 20px;">😈 THE END - You joined the darkness</h3>
                 </div>
             `,
             [
-                { text: this.t('playAgain'), action: 'game.start()' }
+                { text: '🔄 Play Again', action: 'game.start()' }
             ]
         );
     }
@@ -1224,7 +1110,7 @@ class Game {
         this.deleteSave();
 
         this.showScene(
-            this.t('neutralEndingTitle'),
+            '🚪 NEUTRAL ENDING: Survivor',
             `
                 <div class="ending neutral">
                     <p>This is too much. This is beyond you.</p>
@@ -1234,12 +1120,12 @@ class Game {
                     <p style="color: #ffaa00; font-weight: bold;">You survive. That's what matters, right?</p>
                     <p>But as you drive away, you can see the mansion in your rearview mirror.</p>
                     <p>It still stands. The mystery remains unsolved.</p>
-                    <p class="objective">${this.t('neutralEndingText')}</p>
-                    <h3 style="color: #ffa500; margin-top: 20px;">${this.t('neutralEndingFinal')}</h3>
+                    <p class="objective">Others may not be so lucky to escape...</p>
+                    <h3 style="color: #ffa500; margin-top: 20px;">🏃 THE END - You escaped with your life</h3>
                 </div>
             `,
             [
-                { text: this.t('playAgain'), action: 'game.start()' }
+                { text: '🔄 Play Again', action: 'game.start()' }
             ]
         );
     }
@@ -1255,7 +1141,7 @@ class Game {
         this.deleteSave();
 
         this.showScene(
-            this.t('badEndingTitle'),
+            '💀 BAD ENDING: Defeat',
             `
                 <div class="ending bad">
                     <p style="color: #ff4444; font-weight: bold;">${message}</p>
@@ -1263,11 +1149,112 @@ class Game {
                     <p>You have fallen in the Haunted Mansion.</p>
                     <p>Your story ends here...</p>
                     <p>Perhaps in another life, you will make different choices.</p>
-                    <h3 style="color: #dc143c; margin-top: 20px;">${this.t('badEndingFinal')}</h3>
+                    <h3 style="color: #dc143c; margin-top: 20px;">💀 GAME OVER</h3>
                 </div>
             `,
             [
-                { text: this.t('tryAgain'), action: 'game.start()' }
+                { text: '🔄 Try Again', action: 'game.start()' }
+            ]
+        );
+    }
+
+    secretEnding() {
+        this.gameOver = true;
+        this.player.unlockAchievement('True Master');
+
+        // Update stats
+        this.stats.gamesPlayed++;
+        this.stats.secretEndings = (this.stats.secretEndings || 0) + 1;
+        this.stats.totalAchievements = Math.max(this.stats.totalAchievements, this.player.achievements.size);
+        this.stats.bestHealthScore = Math.max(this.stats.bestHealthScore, this.player.health);
+        this.saveStats();
+        this.deleteSave();
+
+        this.showScene(
+            '🌟 SECRET ENDING: The Purification',
+            `
+                <div class="ending secret">
+                    <p>You gather all the sacred items in a circle around the spirit...</p>
+                    <p style="color: #ffd700; font-weight: bold;">The Ancient Book, the Holy Water, the Silver Key, the Rusty Sword, and the Basement Key...</p>
+                    <p>As you recite the words from the Ancient Book, each item begins to glow with ethereal light!</p>
+                    <p>The Holy Water purifies the chamber. The Silver Key unlocks the spirit's true form.</p>
+                    <p>The Rusty Sword reveals itself as an ancient blessed blade. The Basement Key resonates with ancient magic.</p>
+                    <p style="color: #44ffff; font-weight: bold;">A brilliant white light engulfs everything!</p>
+                    <p>When your vision clears, the spirit stands before you - but changed. No longer malevolent, but peaceful.</p>
+                    <p style="color: #88ff88; font-style: italic;">"Thank you, brave soul. You have not destroyed me, but freed me from my curse."</p>
+                    <p>"I was once the mansion's protector, corrupted by dark magic centuries ago."</p>
+                    <p>The spirit dissolves into golden light, blessing the mansion and the entire town.</p>
+                    <p class="objective">Not only is the town safe, but the mansion is purified. Lost souls are freed. You've achieved the impossible!</p>
+                    <h3 style="color: #ffd700; margin-top: 20px;">🌟 THE END - You discovered the truth and saved everyone!</h3>
+                    <p style="margin-top: 20px; color: #ffd700;">⭐ SECRET ENDING UNLOCKED! You found all items and performed the Ancient Ritual!</p>
+                </div>
+            `,
+            [
+                { text: '🔄 Play Again', action: 'game.start()' }
+            ]
+        );
+    }
+
+    sacrificeEnding() {
+        this.gameOver = true;
+        this.player.unlockAchievement('Martyr');
+
+        // Update stats
+        this.stats.gamesPlayed++;
+        this.stats.sacrificeEndings = (this.stats.sacrificeEndings || 0) + 1;
+        this.stats.totalAchievements = Math.max(this.stats.totalAchievements, this.player.achievements.size);
+        this.saveStats();
+        this.deleteSave();
+
+        this.showScene(
+            '⚰️ SACRIFICE ENDING: The Martyr',
+            `
+                <div class="ending sacrifice">
+                    <p>You realize there's another way - one the book didn't mention.</p>
+                    <p>Instead of fighting the spirit or freeing it, you can trap it... by offering yourself as a vessel.</p>
+                    <p style="color: #ffaa44; font-weight: bold;">You begin the forbidden sealing ritual.</p>
+                    <p>The spirit realizes what you're doing. "NO! You fool! You'll be trapped here forever!"</p>
+                    <p>But you don't stop. You continue the incantation.</p>
+                    <p style="color: #ff8844;">Your body becomes the prison. The spirit is sealed within you.</p>
+                    <p>You feel its presence, trapped, unable to harm anyone ever again.</p>
+                    <p>With your last strength, you seal yourself in the ritual chamber and lock the door from inside.</p>
+                    <p>The mansion becomes your tomb. But the town is safe.</p>
+                    <p class="objective">Future generations will tell stories of the brave soul who sacrificed everything to protect them.</p>
+                    <h3 style="color: #ff8844; margin-top: 20px;">⚰️ THE END - Your sacrifice saved countless lives</h3>
+                </div>
+            `,
+            [
+                { text: '🔄 Play Again', action: 'game.start()' }
+            ]
+        );
+    }
+
+    cowardEnding() {
+        this.gameOver = true;
+
+        // Update stats
+        this.stats.gamesPlayed++;
+        this.stats.cowardEndings = (this.stats.cowardEndings || 0) + 1;
+        this.saveStats();
+        this.deleteSave();
+
+        this.showScene(
+            '😨 COWARD ENDING: Early Escape',
+            `
+                <div class="ending coward">
+                    <p>You decide this is too dangerous. You're not a hero.</p>
+                    <p>You turn around and sprint for the exit!</p>
+                    <p>The mansion seems to shake with anger as you run.</p>
+                    <p style="color: #ffaa00; font-weight: bold;">You burst through the front door and don't look back!</p>
+                    <p>You made it out alive - but at what cost?</p>
+                    <p>The disappearances continue. The town remains in danger.</p>
+                    <p>Every night, you wonder if you should have stayed... if you should have tried.</p>
+                    <p class="objective">You survived, but you'll never know what could have been.</p>
+                    <h3 style="color: #ffaa00; margin-top: 20px;">😨 THE END - You escaped before the real adventure began</h3>
+                </div>
+            `,
+            [
+                { text: '🔄 Try Again - Face your fears', action: 'game.start()' }
             ]
         );
     }
@@ -1276,6 +1263,3 @@ class Game {
 // Initialize game
 const game = new Game();
 window.game = game; // Make game accessible globally for audio/sound effects
-
-// Initialize UI language
-game.updateUILanguage();
